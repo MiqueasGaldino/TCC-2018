@@ -35,6 +35,7 @@ int gambiarra = 0;
 int contador_no_defeituoso[55];
 
 
+//Similaridade do Cosseno Função	
 
 double ThroughputTest::similaridade_cosseno(vector<double> A,vector<double> B, int size ){
 	
@@ -60,6 +61,8 @@ double ThroughputTest::similaridade_cosseno(vector<double> A,vector<double> B, i
 	
 	}
 
+
+// Calculo da mediana
 double ThroughputTest::mediana(vector<double> janela, int contagem){
 	double vetor2[contagem];
 	double mediana;
@@ -112,6 +115,8 @@ double ThroughputTest::median_deviation_absolute(vector<double> janela, double m
            return MAD;
 	}
 	
+	
+//Calculo da confiança
 float ThroughputTest::confianca_sensor(vector<double> janela, int indice){
 	
 	
@@ -119,13 +124,13 @@ float ThroughputTest::confianca_sensor(vector<double> janela, int indice){
 	double ZS_modificado;
 	int tamanho = janela.size();
 	double median = mediana(janela, tamanho);    
-	double MAD = median_deviation_absolute(janela, median, tamanho);                
+	double MAD = median_deviation_absolute(janela, median, tamanho);   //chama funcao do desvio absoluto da mediana              
     float quantidade_anomalias = 0;
 	float confianca;
 	 
 	 for (int i= 0; i < janela.size(); i++){
-		
-		if (MAD == 0){
+		// condicao para caso o MAD dê 0
+		if (MAD == 0){ 
 			MAD == 2.2250738585072014e-308;
 			ZS_modificado = abs((0.6745*(janela[i] - median))/MAD);
 			}
@@ -203,7 +208,7 @@ void ThroughputTest::calculo(vector<int> vect){
 	   
      
      
-      
+      // Calcula a taxa de anomalias 
      
 	  for (int i= 0; i < tamanho_vizinhanca; i++){
 		  
@@ -225,7 +230,7 @@ void ThroughputTest::calculo(vector<int> vect){
 		
 		
 		
- //Similaridade -------------------------------------------------------------------------------------------------------
+ //Similaridade e comparação -------------------------------------------------------------------------------------------------------
           
         
         for (int i = 0; i < vect.size(); i++){
@@ -346,6 +351,7 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 		if (tipo_janela == 1){
 		
 				
+				// Adicionando valores a janela de cada nó
 				if (janela_no[index].size() < tamanho_janela[index]){
 					
 					if (janela_no[index].size() == 0){
@@ -369,10 +375,13 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 					
 						}
                 }
+			
+			
+
 
             if(janela_no[index].size() == tamanho_janela[index] and contador[index] > 0){
 
-				
+			 			// Aplica a Janela Deslizante
 				for (int i = 0; i<tamanho_janela[index]; i++){
 						int numero_no = janela_no[index].size();
                         if (i != tamanho_janela[index] - 1 ){
@@ -397,11 +406,10 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 					for (int j = 0; j < 10; j++){
       
 						for (int i = 0; i < vizinhanca[j].size(); i++){
-          
+								// se janela do nó estiver completa incrementa no verificador
+
 							int indice = vizinhanca[j][i];
-						//	trace() << "Deslize: " << deslize_janela[indice] << " " << "Indice: " << indice;
 							if (janela_no[indice].size() == tamanho_janela[index] and  deslize_janela[indice] == 1){
-							//		trace() << "indice entrou depois" << indice;
 									verificador2[j]++;
 									deslize_janela[indice]++;
 									
@@ -410,11 +418,13 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 
 								}
 									
-									
+						// se verificador for do tamanho da vizinhanca , ou seja todos os nós estão completos chama o calculo
+
 									if (verificador2[j] == vizinhanca[j].size()){
-									//		trace() << "chamou pela segunda vez";
 											calculo(vizinhanca[j]); 
 											verificador2[j] = 0;
+											
+											
 											for (int i = 0; i < vizinhanca[j].size(); i++){
 												
 												int indice_deslize = vizinhanca[j][i];
@@ -432,15 +442,16 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 				         
 			if(janela_no[index].size() == tamanho_janela[index] and contador[index] == 0){
 					
-					
+					//laço percorre todas as vizinhancas
 					for (int j = 0; j < 10; j++){
-							
+								
+						//laço percorre dados da vizinhança do indice
+
 						for (int i = 0; i < vizinhanca[j].size(); i++){
 							
 							int indice = vizinhanca[j][i];
-						
+							// se janela do nó estiver completa incrementa no verificador
 							if (janela_no[indice].size() == tamanho_janela[index] and contador[indice] == 0){
-								//trace() << "indice entrou" << indice;
 									verificador[j]++;
 									
 										}
@@ -448,9 +459,11 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 
 								}
 									
-									
+							
+							
+							// se verificador for do tamanho da vizinhanca , ou seja todos os nós estão completos chama o calculo
+
 									if (verificador[j] == vizinhanca[j].size()){
-										//	trace() << "chamou pela primeira vez";
 											calculo(vizinhanca[j]); 
 											verificador[j] = 0;
           
@@ -458,7 +471,7 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
 								}
 					
 							
-							contador[index]++;
+							contador[indice]++;
 					
 					
             }
@@ -472,24 +485,6 @@ void ThroughputTest::fromNetworkLayer(DataPacket * rcvPacket,
   }
 
 
-/*if (addr.compare("55") == 0){
-	
-	  
-	  //trace() << "Sending packet do nó 1: " << dataSN;
-		packets_sent++; 
-		DataPacket* data_packet = createDataPacket(data, dataSN, 80);
-		toNetworkLayer(data_packet, (const char*)("0"));
-		dataSN++;     
-	  
-	  }*/
-
-
-}
-
-
-
-
-   //******************************************************************************************************************************
 
 
 
